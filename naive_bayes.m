@@ -2,21 +2,21 @@
 function output = naive_bayes(training_file, test_file)
 
 % training
-data = load(training_file);
+data = load(training_file); %upload training file
 j = 1;
-class = unique(data(:,end)); %classes list
+class = unique(data(:,end)); %the different classes in the data
 for i=1:length(class)
-    index = find(data(:,end)==class(i)); % rows of that class
-    data1 = data(index,(1:end-1)); 
-    data1_mean = mean(data1);
-    data1_std = std(data1);
+    index = find(data(:,end)==class(i)); %finds the row index of the class
+    data1 = data(index,(1:end-1)); %obtain the data of the class
+    data1_mean = mean(data1); %the mean of each attribute of the asme class
+    data1_std = std(data1); %the std of each attribute of the same class
     for z =1:length(data1_std)
         if(data1_std(z) < 0.01)
-            data1_std(z) = 0.01;
+            data1_std(z) = 0.01; % set 0.01 for std that is lower than 0.01
         end
     end
     
-    for k=1:length(data1_mean)
+    for k=1:length(data1_mean) % Adding all class, attribute, mean and std
         matrix(j,1) = class(i);
         matrix(j,2) = k;
         matrix(j,3) = data1_mean(k);
@@ -25,10 +25,10 @@ for i=1:length(class)
     end
 end
 
- for i=1:size(matrix,1)
-    fprintf('Class %d, attribute %d, mean = %.2f, std = %.2f\n',matrix(i,1), matrix(i,2), matrix(i,3), matrix(i,4));
- end
- fprintf('\n\n');
+for i=1:size(matrix,1)
+   fprintf('Class %d, attribute %d, mean = %.2f, std = %.2f\n',matrix(i,1), matrix(i,2), matrix(i,3), matrix(i,4));
+end
+fprintf('\n\n');
 
 % p(C) probability of class
 for i= 1:length(class)
@@ -36,28 +36,28 @@ for i= 1:length(class)
     probC(i) = length(index)/size(data,1);
 end
 
-data2 = load(test_file);
+data2 = load(test_file); %load test data
 
 %p(x|C)
-for i=1:size(data2,1) %going through each row
+for i=1:size(data2,1) %going through each row of test dat
     for z=1:length(class) %going through each class
-        m = 1;
+        pdf = 1;
         index = find(matrix(:,1)==z);
         for j = 1:length(index)
             x = data2(i,j);
             mu = matrix(index(j),3);
             s = matrix(index(j),4);
             gaussian = (1/(s*sqrt(2*pi)))*exp(-((x-mu).^2)/(2*(s.^2)));
-            m = m*gaussian;
+            pdf = pdf*gaussian; %probability density function for each class
         end
-        pxnc(i,z) = m;
+        pxnc(i,z) = pdf; % each row contains the pdf of each class 
     end
 end
 
 %p(x)
 for i=1:size(pxnc,1)
     for j=1:size(pxnc,2)
-        probX = pxnc * probC';
+        probX = pxnc * probC'; %sum rule
     end
 end
 
@@ -70,7 +70,7 @@ end
 
 %prediction
 for i = 1:size(pcnx,1)
-    [probability,predicted] = max(pcnx,[],2);
+    [probability,predicted] = max(pcnx,[],2); % choosing the highest
 end
 
 
